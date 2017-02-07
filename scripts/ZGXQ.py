@@ -86,7 +86,14 @@ with tf.name_scope("assign_lr"):
 
 # Init Session
 sess = tf.Session()
+saver = tf.train.Saver()
 sess.run(tf.global_variables_initializer())
+ckpt = tf.train.get_checkpoint_state("tmp")
+if ckpt and ckpt.model_checkpoint_path:
+    saver.restore(sess, ckpt.model_checkpoint_path)
+    print ("checkpoint found")
+else:
+    print ("no check point")
 writer = tf.summary.FileWriter("logs-ZGXQ", sess.graph)
 
 num_epoch = 0
@@ -96,6 +103,7 @@ while num_epoch < MAX_ITER:
     batch_input, batch_output, add_epoch = data_set.get_batch()
     if add_epoch is True:
         num_epoch += 1
+        saver.save(sess, "tmp/model.ckpt")
     loss = sess.run([cross_entropy], feed_dict={board_input: batch_input, board_label: batch_output})
     print ("loss %.4f" % np.average(loss))
     if num_run % 10 == 0:
