@@ -9,6 +9,7 @@ MAX_ITER = 1000000
 BATCH_SIZE = 512
 START_LEARNING_RATE = 0.0015
 TRAIN_KEEP_PROB = 0.5
+IS_TRAINING = True
 
 
 class DataSet(object):
@@ -106,6 +107,8 @@ with tf.name_scope("loss"):
     train_step = tf.train.AdamOptimizer(0.0015).minimize(cross_entropy)
     correct_prediction = tf.equal(tf.argmax(board_output, 1), tf.argmax(board_label, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+with tf.name_scope("predict_result"):
+    predict_result = tf.argmax(board_output, 1)
 
 with tf.name_scope("assign_lr"):
     lr_decay_op = learning_rate.assign(learning_rate * 0.5)
@@ -121,7 +124,11 @@ if ckpt and ckpt.model_checkpoint_path:
     print('restore model')
 
 writer = tf.summary.FileWriter("logs-ZGXQ", sess.graph)
-
+if IS_TRAINING is False:
+    batch_input, _, _ = data_set.get_batch()
+    predict_move = sess.run([predict_result], feed_dict={board_input: batch_input})
+    print (predict_move)
+    quit()
 num_epoch = 0
 num_run = 0
 while num_epoch < MAX_ITER:
